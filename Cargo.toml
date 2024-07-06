@@ -9,7 +9,7 @@ repository = "https://github.com/KenmogneThimotee/rust-crawler"
 homepage = "https://github.com/KenmogneThimotee/rust-crawler"
 documentation = "https://docs.rs/stream_crawler"
 keywords = ["web", "scraping", "url", "endpoint", "crawler"]
-categories = ["web-programming", "parsing", "crawler", "web"]
+categories = ["web-programming", "parsing"]
 
 [dependencies]
 regex = "1.10.5"
