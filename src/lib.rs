@@ -1,7 +1,9 @@
 
+use std::sync::Arc;
+
 use regex::Regex;
 use reqwest::Error;
-use tokio::sync::mpsc::{self, Receiver, Sender};
+use tokio::{runtime, sync::mpsc::{self, Receiver, Sender}};
 use tokio_stream::wrappers::ReceiverStream;
 use tokio_stream::StreamExt;
 use scraper::{Html, Selector};
@@ -36,7 +38,7 @@ struct task_state {
     url: TaskState
 }
 
-pub async fn scrape(urls: Vec<String>, retry_attempt: i32, number_process: i32) -> impl tokio_stream::Stream<Item = Processed_url> {
+pub async fn scrape(urls: Vec<String>, retry_attempt: i32, number_process: usize) -> impl tokio_stream::Stream<Item = Processed_url> {
 
     let (buffer_tx, mut buffer_rx) = mpsc::channel::<Unprocessed_url>(10);
     let (user_tx, user_rx) = mpsc::channel::<Processed_url>(10);
@@ -57,7 +59,7 @@ pub async fn scrape(urls: Vec<String>, retry_attempt: i32, number_process: i32) 
     let url_tx_clone = url_tx.clone();
 
     tokio::spawn(async move {
-        scheduler(&mut buffer_rx, user_tx, url_tx_clone, fail_tx).await;
+        scheduler(&mut buffer_rx, user_tx, url_tx_clone, fail_tx, number_process).await;
     });
 
 
@@ -73,17 +75,21 @@ pub async fn scrape(urls: Vec<String>, retry_attempt: i32, number_process: i32) 
 
 }
 
-async fn scheduler(buffer_rx: &mut Receiver<Unprocessed_url>, user_tx: Sender<Processed_url>, url_tx: Sender<Unprocessed_url>, fail_tx: Sender<Unprocessed_url>){
+async fn scheduler(buffer_rx: &mut Receiver<Unprocessed_url>, user_tx: Sender<Processed_url>, url_tx: Sender<Unprocessed_url>, fail_tx: Sender<Unprocessed_url>, number_process: usize){
 
+    let semaphore = Arc::new(tokio::sync::Semaphore::new(number_process));
     // println!("Scheduler ::");
     while let Some(unprocessed_url) = buffer_rx.recv().await {
         let user_tx_clone = user_tx.clone();
         let url_tx_clone = url_tx.clone();
         let fail_tx_clone = fail_tx.clone();
         println!("Scheduler ::");
-
+        let sem = semaphore.clone();
         tokio::spawn(async move {
+            let permit = sem.acquire_owned().await.unwrap() ;// .acquire().await.unwrap();
+
             process_url(user_tx_clone, url_tx_clone, fail_tx_clone, unprocessed_url).await;
+            drop(permit);
         });
     }
 }
