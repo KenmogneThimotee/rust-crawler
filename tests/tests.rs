@@ -1,24 +1,46 @@
 use web_scraper;
 use tokio_stream::StreamExt;
 
+#[cfg(test)]
+mod tests {
+    use web_scraper::extract_urls_from_a_tags;
 
+    use super::*;
 
-#[tokio::test]
-async fn test_add_integration() {
-    println!("Test qdd");
+    #[tokio::test]
+    async fn test_scrape() {
+        let urls = vec![
+            String::from("https://www.google.com"),
+            String::from("https://www.twitter.com"),
+        ];
 
-    let mut urls: Vec<String> = Vec::new();
-    urls.push(String::from("https://www.google.com"));
-    urls.push(String::from("https://www.twitter.com"));
-    let mut result = web_scraper::scrape(urls, 9, 9).await;
+        let mut result_stream = web_scraper::scrape(urls, 3, 5).await;
 
-    let mut count = 1;
-    while let Some(data) = &result.next().await {
-        // let d = data;
-        println!("{}",count);
-        println!("Processed url {:?}", data.url);
-        count += 1;
+        let mut results = vec![];
+        while let Some(data) = result_stream.next().await {
+            results.push(data);
+            break;
+        }
 
+        // This is a simple test and might need to be adjusted based on actual results.
+        assert!(!results.is_empty());
     }
-    assert!(true)
+
+    #[test]
+    fn test_extract_urls_from_a_tags() {
+        let html = r#"
+        <html>
+            <body>
+                <a href="https://www.example.com/page1">Page 1</a>
+                <a href="https://www.example.com/page2">Page 2</a>
+            </body>
+        </html>
+        "#;
+
+        let urls = extract_urls_from_a_tags(html);
+        assert_eq!(urls, vec![
+            "https://www.example.com/page1",
+            "https://www.example.com/page2"
+        ]);
+    }
 }
