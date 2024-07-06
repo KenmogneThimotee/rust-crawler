@@ -1,24 +1,16 @@
 
-use std::{borrow::BorrowMut, collections::HashMap, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 
 use regex::Regex;
-use reqwest::Error;
-use tokio::{runtime, sync::mpsc::{self, Receiver, Sender}};
+use tokio::sync::mpsc::{self, Receiver, Sender};
 use tokio_stream::wrappers::ReceiverStream;
-use tokio_stream::StreamExt;
 use scraper::{Html, Selector};
 
-
-enum UrlState {
-    PROCESSED(ProcessedUrl),
-    UNPROCESSED(UnprocessedUrl)
-}
-
 enum TaskState {
-    NOT_STARTED(i32),
+    NotStarted(i32),
     PENDING(i32),
     PROCESSED(i32),
-    FAIL(i32)
+    FAILED(i32)
 }
 struct UnprocessedUrl {
     parent: Option<String>,
@@ -52,7 +44,7 @@ pub async fn scrape(urls: Vec<String>, retry_attempt: i32, number_process: usize
             url: url.clone()
         };
 
-        task_state.clone().lock_owned().await.insert(url.clone(), TaskState::NOT_STARTED(0));
+        task_state.clone().lock_owned().await.insert(url.clone(), TaskState::NotStarted(0));
 
         buffer_tx.send(unproc).await.unwrap();
     }
@@ -92,23 +84,19 @@ async fn scheduler(buffer_rx: &mut Receiver<UnprocessedUrl>, user_tx: Sender<Pro
         let mut state = task_state.clone().lock_owned().await;
         let key_value = state.get(&unprocessed_url.url);
         match key_value {
-            Some(TaskState::FAIL(value)) => {
+            Some(TaskState::FAILED(value)) => {
                 let val = value.clone();
                 state.insert(unprocessed_url.url.clone(), TaskState::PENDING(val));
             },
-            Some(TaskState::NOT_STARTED(value)) => {
+            Some(TaskState::NotStarted(value)) => {
                 let val = value.clone();
                 state.insert(unprocessed_url.url.clone(), TaskState::PENDING(val));
-            },
-            Some(TaskState::PENDING(_)) => {
-                continue;
-            },
-            Some(TaskState::PROCESSED(_)) => {
-                continue;
             },
             None => {
                 state.insert(unprocessed_url.url.clone(), TaskState::PENDING(0));
-            }
+            },
+            _ => continue
+
         };
         let sem = semaphore.clone();
         tokio::spawn(async move {
@@ -133,25 +121,18 @@ async fn fail_task(fail_rx: &mut Receiver<(UnprocessedUrl, reqwest::Error)>, url
         let mut state = task_state.clone().lock_owned().await;
         let key_value = state.get(&unprocessed_url.0.url);
         match key_value {
-            Some(TaskState::FAIL(_)) => {
-                continue;
-            },
-            Some(TaskState::NOT_STARTED(_)) => {
-                continue;
-            },
             Some(TaskState::PENDING(value)) => {
                 if unprocessed_url.1.is_connect()  && retry_attempt > value.clone(){
                     println!("retry 1");
                     let val = value.clone();
-                    state.insert(unprocessed_url.0.url.clone(), TaskState::FAIL(val+1));
+                    state.insert(unprocessed_url.0.url.clone(), TaskState::FAILED(val+1));
                     url_tx.send(unprocessed_url.0).await.unwrap();
                 }
 
             },
-            Some(TaskState::PROCESSED(_)) => {
-                continue;
-            },
-            None => {continue;}
+            None => continue,
+            _ => continue
+
         };
 
     }
@@ -167,26 +148,21 @@ async fn urls_processor(url_rx: &mut Receiver<UnprocessedUrl>, buffer_tx: Sender
         let mut state = task_state.clone().lock_owned().await;
         let key_value = state.get(&unprocessed_url.url);
         match key_value {
-            Some(TaskState::FAIL(value)) => {
+            Some(TaskState::FAILED(value)) => {
                 println!("url tx {:?}",value);
                 let val = value.clone();
-                state.insert(unprocessed_url.url.clone(), TaskState::FAIL(val));
+                state.insert(unprocessed_url.url.clone(), TaskState::FAILED(val));
                 buffer_tx.send(unprocessed_url).await.unwrap();
-            },
-            Some(TaskState::NOT_STARTED(_)) => {
-                continue;
             },
             Some(TaskState::PENDING(value)) => {
                 let val = value.clone();
                 state.insert(unprocessed_url.url.clone(), TaskState::PROCESSED(val));
             },
-            Some(TaskState::PROCESSED(_)) => {
-                continue;
-            },
             None => {
-                state.insert(unprocessed_url.url.clone(), TaskState::NOT_STARTED(0));
+                state.insert(unprocessed_url.url.clone(), TaskState::NotStarted(0));
                 buffer_tx.send(unprocessed_url).await.unwrap();
-            }
+            },
+            _ => continue
         };
 
     }
@@ -259,26 +235,6 @@ async fn process_url(user_tx: Sender<ProcessedUrl>, url_tx: Sender<UnprocessedUr
 
 }
 
-pub fn extract_urls(text: &str) -> Vec<String> {
-    let url_pattern = r"https?://[^\s/$.?#].[^\s]*";
-    let re = Regex::new(url_pattern).unwrap();
-    re.find_iter(text)
-        .map(|mat| mat.as_str().to_string())
-        .collect()
-}
-
-
-fn extract_endpoints(body: &str) -> Vec<String> {
-    let re = Regex::new(r"/[^/]+").unwrap();
-    let mut endpoints = Vec::new();
-
-    for cap in re.captures_iter(body) {
-        endpoints.push(cap[0].to_string());
-    }
-
-    endpoints
-}
-
 pub fn extract_urls_from_a_tags(html: &str) -> Vec<String> {
     let document = Html::parse_document(html);
     let selector = Selector::parse("a").unwrap();
@@ -287,7 +243,5 @@ pub fn extract_urls_from_a_tags(html: &str) -> Vec<String> {
         .filter_map(|element| element.value().attr("href"))
         .map(|href| href.to_string())
         .collect();
-
-    
     data
 }
