@@ -1,10 +1,10 @@
-# Web Scraper
+# Stream scraper
 
-`web_scraper` is a Rust crate that provides an asynchronous web scraping utility. It processes URLs, extracts content and child URLs, and handles retry attempts for failed requests. It uses the `tokio` runtime for asynchronous operations and the `reqwest` library for HTTP requests.
+`stream-scraper` is a Rust crate that provides an asynchronous web crawling utility. It processes URLs, extracts content and child URLs, and handles retry attempts for failed requests. It uses the `tokio` runtime for asynchronous operations and the `reqwest` library for HTTP requests.
 
 ## Features
 
-- Asynchronous scraping using `tokio`
+- Asynchronous crawling using `tokio`
 - Extracts URLs from `<a>` tags in HTML
 - Retries failed requests up to a specified number of attempts
 - Limits the number of concurrent requests using a semaphore
@@ -15,7 +15,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-web_scraper = "0.1.0"
+stream_crawler = "0.1.0"
 tokio = { version = "1", features = ["full"] }
 reqwest = { version = "0.11", features = ["json"] }
 scraper = "0.12"
@@ -25,7 +25,7 @@ scraper = "0.12"
 ## Usage
 
 ```rust
-use web_scraper::scrape;
+use stream_crawler::scrape;
 use tokio_stream::StreamExt;
 
 #[tokio::main]
@@ -61,7 +61,7 @@ async fn main() {
 This example demonstrates how to use the `scrape` function to process a list of URLs.
 
 ```rust
-use web_scraper::scrape;
+use stream_crawler::scrape;
 use tokio_stream::StreamExt;
 
 #[tokio::main]

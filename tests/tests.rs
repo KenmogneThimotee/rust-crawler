@@ -1,9 +1,9 @@
-use web_scraper;
+use stream_crawler;
 use tokio_stream::StreamExt;
 
 #[cfg(test)]
 mod tests {
-    use web_scraper::extract_urls_from_a_tags;
+    use stream_crawler::extract_urls_from_a_tags;
 
     use super::*;
 
@@ -14,7 +14,7 @@ mod tests {
             String::from("https://www.twitter.com"),
         ];
 
-        let mut result_stream = web_scraper::scrape(urls, 3, 5).await;
+        let mut result_stream = stream_crawler::scrape(urls, 3, 5).await;
 
         let mut results = vec![];
         while let Some(data) = result_stream.next().await {

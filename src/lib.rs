@@ -1,5 +1,4 @@
 use std::{collections::HashMap, sync::Arc};
-use regex::Regex;
 use tokio::sync::mpsc::{self, Receiver, Sender};
 use tokio_stream::wrappers::ReceiverStream;
 use scraper::{Html, Selector};
@@ -23,7 +22,7 @@ struct UnprocessedUrl {
 /// # Examples
 ///
 /// ```
-/// use web_scraper::ProcessedUrl;
+/// use stream_crawler::ProcessedUrl;
 ///
 /// let processed_url = ProcessedUrl {
 ///     parent: Some(String::from("https://www.example.com")),
@@ -47,7 +46,7 @@ pub struct ProcessedUrl {
 /// # Examples
 ///
 /// ```
-/// use web_scraper::scrape;
+/// use stream_crawler::scrape;
 /// use tokio_stream::StreamExt;
 ///
 /// #[tokio::main]
@@ -233,7 +232,7 @@ async fn process_url(user_tx: Sender<ProcessedUrl>, url_tx: Sender<UnprocessedUr
 /// # Examples
 ///
 /// ```
-/// use web_scraper::extract_urls_from_a_tags;
+/// use stream_crawler::extract_urls_from_a_tags;
 ///
 /// let html = r#"
 /// <html>

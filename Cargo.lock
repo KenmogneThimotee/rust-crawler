@@ -1227,6 +1227,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 
 [[package]]
+name = "stream_crawler"
+version = "0.1.0"
+dependencies = [
+ "regex",
+ "reqwest",
+ "scraper",
+ "tokio",
+ "tokio-stream",
+]
+
+[[package]]
 name = "string_cache"
 version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1623,17 +1634,6 @@ checksum = "77afa9a11836342370f4817622a2f0f418b134426d91a82dfb48f532d2ec13ef"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "web_scraper"
-version = "0.1.0"
-dependencies = [
- "regex",
- "reqwest",
- "scraper",
- "tokio",
- "tokio-stream",
 ]
 
 [[package]]
