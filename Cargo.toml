@@ -1,7 +1,15 @@
 [package]
 name = "web_scraper"
 version = "0.1.0"
+authors = ["Thimotee Legrand Kenmogne Ghomsi"]
 edition = "2021"
+description = "A crate for scraping web pages and extracting URLs and endpoints."
+license = "MIT"
+repository = "https://github.com/KenmogneThimotee/rust-crawler"
+homepage = "https://github.com/KenmogneThimotee/rust-crawler"
+documentation = "https://docs.rs/web_scraper"
+keywords = ["web", "scraping", "url", "endpoint", "crawler"]
+categories = ["web-programming", "parsing", "crawler", "web"]
 
 [dependencies]
 regex = "1.10.5"
