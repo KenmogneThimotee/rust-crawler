@@ -21,7 +21,6 @@ reqwest = { version = "0.11", features = ["json"] }
 scraper = "0.12"
 ```
 
-
 ## Usage
 
 ```rust
@@ -35,7 +34,7 @@ async fn main() {
         String::from("https://www.twitter.com"),
     ];
 
-    let mut result_stream = scrape(urls, 3, 5).await;
+    let mut result_stream = scrape(urls, 3, 5, 10).await;
 
     while let Some(data) = result_stream.next().await {
         println!("Processed URL: {:?}", data);
@@ -43,7 +42,6 @@ async fn main() {
 }
 
 ```
-
 
 ### Functionality
 
@@ -71,7 +69,7 @@ async fn main() {
         String::from("https://www.twitter.com"),
     ];
 
-    let mut result_stream = scrape(urls, 3, 5).await;
+    let mut result_stream = scrape(urls, 3, 5, 10).await;
 
     while let Some(data) = result_stream.next().await {
         println!("Processed URL: {:?}", data);
@@ -79,7 +77,6 @@ async fn main() {
 }
 
 ```
-
 
 ## Documentation
 
@@ -97,7 +94,6 @@ pub struct ProcessedUrl {
 }
 
 ```
-
 
 ## Contributing
 
