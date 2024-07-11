@@ -1,6 +1,6 @@
 [package]
 name = "stream_crawler"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Thimotee Legrand Kenmogne Ghomsi"]
 edition = "2021"
 description = "A crate for scraping web pages and extracting URLs and endpoints."
@@ -9,10 +9,9 @@ repository = "https://github.com/KenmogneThimotee/rust-crawler"
 homepage = "https://github.com/KenmogneThimotee/rust-crawler"
 documentation = "https://docs.rs/stream_crawler"
 keywords = ["web", "scraping", "url", "endpoint", "crawler"]
-categories = ["web-programming", "parsing"]
+categories = ["web-programming", "parsing"  ]
 
 [dependencies]
-regex = "1.10.5"
 reqwest = { version = "0.12", features = ["json"] }
 tokio = { version = "1", features = ["full"] }
 tokio-stream = "0.1.15"

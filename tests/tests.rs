@@ -14,7 +14,7 @@ mod tests {
             String::from("https://www.twitter.com"),
         ];
 
-        let mut result_stream = stream_crawler::scrape(urls, 3, 5).await;
+        let mut result_stream = stream_crawler::scrape(urls, 3, 5, 100).await;
 
         let mut results = vec![];
         while let Some(data) = result_stream.next().await {

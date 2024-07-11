@@ -5,10 +5,10 @@ use scraper::{Html, Selector};
 
 /// Represents the state of a task.
 enum TaskState {
-    NotStarted(i32),
-    PENDING(i32),
-    PROCESSED(i32),
-    FAILED(i32),
+    NotStarted(usize),
+    PENDING(usize),
+    PROCESSED(usize),
+    FAILED(usize),
 }
 
 /// Represents an unprocessed URL.
@@ -56,7 +56,7 @@ pub struct ProcessedUrl {
 ///         String::from("https://www.twitter.com"),
 ///     ];
 ///
-///     let mut result_stream = scrape(urls, 3, 5).await;
+///     let mut result_stream = scrape(urls, 3, 5, 9).await;
 ///     let mut results = vec![];
 ///
 ///     while let Some(data) = result_stream.next().await {
@@ -66,11 +66,11 @@ pub struct ProcessedUrl {
 ///     assert!(!results.is_empty());
 /// }
 /// ```
-pub async fn scrape(urls: Vec<String>, retry_attempt: i32, number_process: usize) -> impl tokio_stream::Stream<Item = ProcessedUrl> {
-    let (buffer_tx, mut buffer_rx) = mpsc::channel::<UnprocessedUrl>(10);
-    let (user_tx, user_rx) = mpsc::channel::<ProcessedUrl>(10);
-    let (fail_tx, mut fail_rx) = mpsc::channel::<(UnprocessedUrl, reqwest::Error)>(10);
-    let (url_tx, mut url_rx) = mpsc::channel::<UnprocessedUrl>(10);
+pub async fn scrape(urls: Vec<String>, retry_attempt: usize, number_process: usize, channel_size: usize) -> impl tokio_stream::Stream<Item = ProcessedUrl> {
+    let (buffer_tx, mut buffer_rx) = mpsc::channel::<UnprocessedUrl>(channel_size);
+    let (user_tx, user_rx) = mpsc::channel::<ProcessedUrl>(channel_size);
+    let (fail_tx, mut fail_rx) = mpsc::channel::<(UnprocessedUrl, reqwest::Error)>(channel_size);
+    let (url_tx, mut url_rx) = mpsc::channel::<UnprocessedUrl>(channel_size);
     
     let task_state: Arc<tokio::sync::Mutex<HashMap<String, TaskState>>> = Arc::new(tokio::sync::Mutex::new(HashMap::new()));
 
@@ -134,7 +134,7 @@ async fn scheduler(buffer_rx: &mut Receiver<UnprocessedUrl>, user_tx: Sender<Pro
     }
 }
 
-async fn fail_task(fail_rx: &mut Receiver<(UnprocessedUrl, reqwest::Error)>, url_tx: Sender<UnprocessedUrl>, retry_attempt: i32, task_state: Arc<tokio::sync::Mutex<HashMap<String, TaskState>>>) {
+async fn fail_task(fail_rx: &mut Receiver<(UnprocessedUrl, reqwest::Error)>, url_tx: Sender<UnprocessedUrl>, retry_attempt: usize, task_state: Arc<tokio::sync::Mutex<HashMap<String, TaskState>>>) {
     while let Some(unprocessed_url) = fail_rx.recv().await {
 
 
