@@ -1,4 +1,4 @@
-# Stream scraper
+# Stream crawler
 
 `stream-scraper` is a Rust crate that provides an asynchronous web crawling utility. It processes URLs, extracts content and child URLs, and handles retry attempts for failed requests. It uses the `tokio` runtime for asynchronous operations and the `reqwest` library for HTTP requests.
 
